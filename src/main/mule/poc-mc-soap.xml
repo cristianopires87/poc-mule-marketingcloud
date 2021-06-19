@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:sfdc-marketing-cloud="http://www.mulesoft.org/schema/mule/sfdc-marketing-cloud" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/sfdc-marketing-cloud http://www.mulesoft.org/schema/mule/sfdc-marketing-cloud/current/mule-sfdc-marketing-cloud.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<flow name="sfmcFlow1" doc:id="4a193423-8579-472a-b8b6-af79fe576d14" >
+		<http:listener doc:name="/create-soap" doc:id="49c70bae-973e-4f3a-b8b1-aa3552a7886a" path="/create-soap" config-ref="HTTP_Listener_SOAP"/>
+		<ee:transform doc:name="Transform Message" doc:id="b649bc59-03bc-4b6b-8543-43fd63aa19e4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+[{
+	CustomerKey: "????????",
+	Properties: {
+		Property: [{
+			Name: "FirstName",
+			Value: payload.FirstName
+		},{
+			Name: "LastName",
+			Value: payload.LastName
+		},{
+			Name: "ID",
+			Value: payload.ID as String
+		}]
+	}
+}]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<sfdc-marketing-cloud:create doc:name="Create entities" doc:id="eb8a9253-d403-4314-a08e-84649aa42493" objectType="DataExtensionObject" config-ref="Salesforce_Marketing_Cloud_Config"/>
+		<ee:transform doc:name="Transform Message" doc:id="6764ee6e-89df-4967-8b0a-a4508ec97cc1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

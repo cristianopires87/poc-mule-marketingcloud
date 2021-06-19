@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:sfdc-marketing-cloud="http://www.mulesoft.org/schema/mule/sfdc-marketing-cloud" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/sfdc-marketing-cloud http://www.mulesoft.org/schema/mule/sfdc-marketing-cloud/current/mule-sfdc-marketing-cloud.xsd">
+	<configuration-properties doc:name="Configuration properties" doc:id="196f5b74-6050-473d-98d6-eef454b82226" file="properties\properties.yaml" />
+	<http:listener-config name="HTTP_Listener_REST" doc:name="HTTP Listener config" doc:id="a90a0011-58ae-4cd5-bfff-6884bd74e540" >
+		<http:listener-connection host="localhost" port="8082"/>
+	</http:listener-config>
+	<os:object-store name="accessToken" doc:name="Object store" doc:id="feef0ba4-52f3-4557-a55a-4a3147d32cf2" maxEntries="1" entryTtl="5" />
+	<ee:object-store-caching-strategy name="Caching_Strategy_Access_Token" doc:name="Caching Strategy" doc:id="840a7d3e-1212-41a0-9b33-8246c75f7af0" keyGenerationExpression="access_token" objectStore="accessToken" />
+	<http:request-config name="HTTP_Request_configuration_Token" doc:name="HTTP Request configuration" doc:id="fb355d65-a522-4594-a1e5-232a30582c3d" >
+		<http:request-connection host="${mktcloud.subdomain}.auth.marketingcloudapis.com" protocol="HTTPS"/>
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration_Rest" doc:name="HTTP Request configuration" doc:id="19caf4c5-baa2-42f5-bed6-513cd89e9fcb" >
+		<http:request-connection protocol="HTTPS" host="${mktcloud.subdomain}.rest.marketingcloudapis.com"/>
+	</http:request-config>
+	<sfdc-marketing-cloud:config name="Salesforce_Marketing_Cloud_Config" doc:name="Salesforce Marketing Cloud Config" doc:id="afa46b45-10e2-4287-85d8-73a9b88e2f03" >
+		<sfdc-marketing-cloud:oauth-client-credentials-connection serviceUrl="${mktcloud.subdomain}.soap.marketingcloudapis.com/Service.asmx" >
+			<sfdc-marketing-cloud:oauth-client-credentials clientId="${mktcloud.client_id}" clientSecret="${mktcloud.client_secret}" tokenUrl="${mktcloud.token_url}" />
+		</sfdc-marketing-cloud:oauth-client-credentials-connection>
+	</sfdc-marketing-cloud:config>
+	<http:listener-config name="HTTP_Listener_SOAP" doc:name="HTTP Listener config" doc:id="73242b9c-c5f8-4640-ac4d-88e35877979a" >
+		<http:listener-connection host="localhost" port="8083" />
+	</http:listener-config>
+</mule>

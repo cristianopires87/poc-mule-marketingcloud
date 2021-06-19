@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<configuration-properties doc:name="Configuration properties" doc:id="196f5b74-6050-473d-98d6-eef454b82226" file="properties\properties.yaml" />
+	<flow name="poc-marketingcloud-iiFlow" doc:id="18287364-928e-46e4-aeb2-5e2d23ae1ef7" >
+		<http:listener doc:name="/create-rest" doc:id="03fa6d02-1ee8-4715-b749-a56bab057e7d" path="/create-rest" config-ref="HTTP_Listener_REST"/>
+		<set-variable value="#[payload]" doc:name="data" doc:id="509eb1e7-0e3e-4f93-a8e6-a6e817e1b5f6" variableName="data"/>
+		<ee:cache doc:name="Cache" doc:id="2c9b9659-04bb-4d93-a718-35da75539ba9" cachingStrategy-ref="Caching_Strategy_Access_Token">
+			<http:request method="POST" doc:name="MC - Access Token" doc:id="53ccebe9-a27e-46b9-996d-c976fba9ee3b" config-ref="HTTP_Request_configuration_Token" path="/v2/token">
+				<http:body><![CDATA[#[output application/json
+---
+{
+    "grant_type": "client_credentials",
+    "client_id": p('mktcloud.client_id') ,
+    "client_secret": p('mktcloud.client_secret'),
+    "account_id": p('mktcloud.account_id')
+}]]]></http:body>
+				<http:headers><![CDATA[#[output application/java
+---
+{
+	"Accept" : "*/*",
+	"Content-Type" : "application/json"
+}]]]></http:headers>
+			</http:request>
+		</ee:cache>
+		<http:request method="POST" doc:name="MC - REST Call" doc:id="5af7fcd0-7a02-4c52-bb54-46fe27766792" path="#[&quot;/data/v1/async/dataextensions/key:&quot; ++ p('mktcloud.data_extension.external_key') ++ &quot;/rows&quot;]" config-ref="HTTP_Request_configuration_Rest">
+			<http:body ><![CDATA[#[vars.data]]]></http:body>
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+    "Authorization": "Bearer " ++ payload.access_token,
+    "Content-Type": "application/json"
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="ecfc8d77-dc2f-4aea-aac9-5c741e40b750" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
